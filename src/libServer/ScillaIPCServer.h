@@ -25,6 +25,15 @@
 
 #include "libData/AccountData/Account.h"
 
+// An abstract base class to provide various blockchain info to Scilla.
+class ScillaBCInfo {
+ public:
+  virtual uint64_t getCurBlockNum() const = 0;
+  virtual dev::h256 getRootHash() const = 0;
+  virtual Address getCurContrAddr() const = 0;
+  virtual uint32_t getScillaVersion() const = 0;
+};
+
 class ScillaIPCServer : public jsonrpc::AbstractServer<ScillaIPCServer> {
  public:
   ScillaIPCServer(jsonrpc::AbstractServerConnector& conn);
@@ -36,6 +45,8 @@ class ScillaIPCServer : public jsonrpc::AbstractServer<ScillaIPCServer> {
                                                Json::Value& response);
   inline virtual void updateStateValueI(const Json::Value& request,
                                         Json::Value& response);
+  inline virtual void fetchBlockchainInfoI(const Json::Value& request,
+                                           Json::Value& response);
   virtual bool fetchStateValue(const std::string& query, std::string& value,
                                bool& found);
   virtual bool fetchExternalStateValue(const std::string& addr,
@@ -44,17 +55,17 @@ class ScillaIPCServer : public jsonrpc::AbstractServer<ScillaIPCServer> {
                                        std::string& type);
   virtual bool updateStateValue(const std::string& query,
                                 const std::string& value);
-  void setContractAddressVerRoot(const Address& address, uint32_t version,
-                                 const dev::h256& rootHash);
+  virtual bool fetchBlockchainInfo(const std::string& query_name,
+                                   const std::string& query_args,
+                                   std::string& value);
+  void setBCInfoProvider(const ScillaBCInfo* bcInfo);
 
   // bool fetchExternalStateValue(const std::string& addr,
   //                              const std::string& query, std::string& value,
   //                              bool& found, std::string& type);
 
  private:
-  Address m_contrAddr = Address();
-  uint32_t m_version = std::numeric_limits<uint32_t>::max();
-  dev::h256 m_rootHash = dev::h256();
+  const ScillaBCInfo* m_BCInfo = nullptr;
 };
 
 #endif  // ZILLIQA_SRC_LIBSERVER_SCILLAIPCSERVER_H_

@@ -24,10 +24,30 @@
 #include <functional>
 #include <mutex>
 
+#include <libServer/ScillaIPCServer.h>
 #include "AccountStoreBase.h"
 #include "libUtils/DetachedFunction.h"
 
-class ScillaIPCServer;
+class ScillaBCInfoProvider : public ScillaBCInfo {
+ public:
+  ScillaBCInfoProvider(uint64_t curBlockNum, Address curContrAddr,
+                       dev::h256 rootHash, uint32_t scillaVersion)
+      : m_curBlockNum(curBlockNum),
+        m_curContrAddr(curContrAddr),
+        m_rootHash(rootHash),
+        m_scillaVersion(scillaVersion) {}
+
+  uint64_t getCurBlockNum() const { return m_curBlockNum; }
+  dev::h256 getRootHash() const { return m_rootHash; }
+  Address getCurContrAddr() const { return m_curContrAddr; }
+  uint32_t getScillaVersion() const { return m_scillaVersion; }
+
+ private:
+  uint64_t m_curBlockNum;
+  Address m_curContrAddr;
+  dev::h256 m_rootHash;
+  uint32_t m_scillaVersion;
+};
 
 template <class MAP>
 class AccountStoreSC;
@@ -179,6 +199,8 @@ class AccountStoreSC : public AccountStoreBase<MAP> {
 
  protected:
   AccountStoreSC();
+
+  uint64_t getCurBlockNum() const { return m_curBlockNum; }
 
   /// generate input files for interpreter to deploy contract
   bool ExportCreateContractFiles(
